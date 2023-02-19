@@ -112,8 +112,8 @@ export default function Home() {
               <button
                 className="h-full w-full"
                 onClick={async () => {
-                  await Tone.start();
                   requestPermission();
+                  await Tone.start();
                 }}
               >
                 <h1>Start</h1>

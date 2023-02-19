@@ -4,10 +4,8 @@ import useSynth from "@/ilb/hooks/useSynth";
 import useMeasurementBpm from "@/ilb/hooks/useMeasurementBpm";
 import Chart from "chart.js/auto";
 import AccelerationChart from "@/ilb/components/chart/AccelerationChart";
-import useMicrophone from "@/ilb/hooks/useMicrophone";
 import useAcceleration from "@/ilb/hooks/useAcceleration";
 import useInterval from "@/ilb/hooks/useInterval";
-import AudioChart from "@/ilb/components/chart/AudioChart";
 import classNames from "classnames";
 
 Chart.register();
@@ -16,17 +14,16 @@ const partNames = ["キック", "ハイハット1", "ハイハット2", "ビー�
 
 export default function Home() {
   const { bpms, measureBpm, setBpms } = useMeasurementBpm(true);
-  const { analyser, requestPermission, isGranted } = useMicrophone();
-  const audioChartRef = useRef<Chart<"line">>(null);
+  const { accs, requestPermission, isGranted } = useAcceleration();
   const accsChartRef = useRef<Chart<"line">>(null);
   const startOverTime = useRef<number>(0);
   const [parts, setParts] = useState<Array<Tone.Part | Tone.Loop>>([]);
   const { createKickPart, createClosedHihatPart, createBleepLoop, createOpenHihatPart, createBassPart } = useSynth();
 
   useInterval(() => {
-    if (!audioChartRef.current && !accsChartRef.current) return;
+    if (!accsChartRef.current) return;
 
-    const chart = audioChartRef.current || (accsChartRef.current as Chart<"line">);
+    const chart = accsChartRef.current;
     const values = chart.data.datasets[0].data as Array<{ x: number; y: number } | undefined>;
     const recentValue = values[values.length - 1];
 
@@ -103,13 +100,13 @@ export default function Home() {
                        hover:scale-105 hover:border-2 hover:border-black sm:h-[300px] sm:w-[300px] 
                        "
             onClick={() => {
-              if (!analyser) return;
+              if (!accs) return;
               measureBpm();
             }}
           >
-            {analyser ? (
+            {accs ? (
               <div>
-                <AudioChart analyser={analyser} chartRef={audioChartRef} />
+                <AccelerationChart accs={accs} chartRef={accsChartRef} />
               </div>
             ) : (
               <button

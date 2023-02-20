@@ -13,7 +13,7 @@ type PropsType = {
   accs: Acceleration;
 };
 
-const AccelerationChart = ({ accs, chartRef, threshold = 3 }: PropsType) => {
+const AccelerationChart = ({ accs, chartRef, threshold = 0.5 }: PropsType) => {
   const data = {
     datasets: [
       {
@@ -54,13 +54,23 @@ const AccelerationChart = ({ accs, chartRef, threshold = 3 }: PropsType) => {
           refresh: 50,
           onRefresh: (chart: Chart<"line">) => {
             const { x, y, z } = accs;
-            chart.data.datasets[0].data.push({ x: Date.now(), y: z as number });
-            chart.data.datasets[1].data.push({ x: Date.now(), y: threshold });
+            const ys = (chart.data.datasets[0].data as Array<{ x: number; y: number }>).map(({ y }) => y);
+            if (!ys.length) {
+              chart.data.datasets[0].data.push({ x: Date.now(), y: z as number });
+              chart.data.datasets[1].data.push({ x: Date.now(), y: threshold });
+            } else {
+              const [max, min] = ys.reduce((prev, cur) => [Math.max(prev[0], cur), Math.min(prev[1], cur)], [0, 0]);
+              let newThreshold = (max + min) / 2;
+              if (newThreshold < threshold) {
+                newThreshold = threshold;
+              }
+              chart.data.datasets[0].data.push({ x: Date.now(), y: z as number });
+              chart.data.datasets[1].data.push({ x: Date.now(), y: newThreshold });
+            }
           },
         },
       },
       y: {
-        max: 1.5 * threshold,
         ticks: {
           display: false,
         },

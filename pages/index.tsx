@@ -7,6 +7,8 @@ import AccelerationChart from "@/ilb/components/chart/AccelerationChart";
 import useAcceleration from "@/ilb/hooks/useAcceleration";
 import useInterval from "@/ilb/hooks/useInterval";
 import classNames from "classnames";
+import AnimationBox from "@/ilb/components/chart/Effect";
+import Effect from "@/ilb/components/chart/Effect";
 
 Chart.register();
 
@@ -82,58 +84,60 @@ export default function Home() {
 
   return (
     <>
-      <main>
-        <div className="flex flex-col items-center space-y-2 text-center">
-          <h1
-            className={classNames({
-              "animate-wobble-ver-right": bpms.length,
-              " text-red-500": parts.length,
-            })}
-          >
-            BPM: {bpms.length ? Math.ceil(bpms.reduce((prev, cur) => prev + cur) / bpms.length) : null}
-          </h1>
-          <div
-            aria-label="acc-circle"
-            className="flex h-[200px] w-[200px] cursor-pointer
+      <main className="h-screen">
+        <Effect deps={[bpms]} animationName="animate-wobble-ver-right">
+          <div className="flex flex-col items-center space-y-2 text-center">
+            <h1
+              className={classNames({
+                " text-red-500": parts.length,
+              })}
+            >
+              BPM: {bpms.length ? Math.ceil(bpms.reduce((prev, cur) => prev + cur) / bpms.length) : null}
+            </h1>
+            <div
+              aria-label="acc-circle"
+              className="flex h-[200px] w-[200px] cursor-pointer
                        flex-col items-center justify-center overflow-hidden rounded-full
                        bg-gradient-to-r from-cyan-200 to-blue-400 shadow-2xl transition
                        hover:scale-105 hover:border-2 hover:border-black sm:h-[300px] sm:w-[300px] 
                        "
-            onClick={() => {
-              if (!accs) return;
-              measureBpm();
-            }}
-          >
-            {accs ? (
-              <div>
-                <AccelerationChart accs={accs} chartRef={accsChartRef} />
-              </div>
-            ) : (
-              <button
-                className="h-full w-full"
-                onClick={async () => {
-                  requestPermission();
-                  await Tone.start();
-                }}
-              >
-                <h1>Start</h1>
-              </button>
-            )}
-          </div>
-          <div className="space-y-4">
-            {parts
-              ? parts.map((_, i) => (
-                  <div className="flex animate-wobble-ver-right items-center space-x-4">
-                    <div className="rounded-full  bg-blue-200 px-10">
-                      <h1>
-                        {i + 1}. {partNames[i]}
-                      </h1>
+              onClick={() => {
+                if (!accs) return;
+                measureBpm();
+              }}
+            >
+              {accs ? (
+                <div>
+                  <AccelerationChart accs={accs} chartRef={accsChartRef} />
+                </div>
+              ) : (
+                <button
+                  className="h-full w-full"
+                  onClick={async () => {
+                    requestPermission();
+                    await Tone.start();
+                  }}
+                >
+                  <h1>Start</h1>
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {parts
+                ? parts.map((_, i) => (
+                    <div className="flex animate-wobble-ver-right items-center space-x-4">
+                      <div className="rounded-full  bg-blue-200 px-10">
+                        <h1>
+                          {i + 1}. {partNames[i]}
+                        </h1>
+                      </div>
                     </div>
-                  </div>
-                ))
-              : null}
+                  ))
+                : null}
+            </div>
           </div>
-        </div>
+        </Effect>
       </main>
     </>
   );

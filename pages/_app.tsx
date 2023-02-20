@@ -8,7 +8,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <h1>Beat walker</h1>
         <h2>歩く，もしくはクリックしてビートを刻もう．</h2>
       </header>
-      <Component {...pageProps} />;
+      <Component {...pageProps} />
     </>
   );
 }

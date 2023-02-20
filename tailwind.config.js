@@ -5,9 +5,18 @@ module.exports = {
   theme: {
     extend: {
       animation: {
-        "wobble-ver-right": "wobble-ver-right 0.3s ease   both",
+        "wobble-ver-right": "wobble-ver-right 0.3s ease both",
+        spread: "spread 0.2s linear",
       },
       keyframes: {
+        spread: {
+          "0%": {
+            boxShadow: "0 0 0 0 rgba(225, 0, 178, .7), 0 0 0 0 rgba(225, 0, 178, .7)",
+          },
+          "100%": {
+            boxShadow: "0 0 0 100px rgba(225, 0, 178, 0), 0 0 0 0 rgba(225, 0, 178, .7)",
+          },
+        },
         "wobble-ver-right": {
           "0%,to": {
             transform: "translateY(0) rotate(0)",

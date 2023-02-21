@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import * as Tone from "tone";
 import useSynth from "@/ilb/hooks/useSynth";
+import useSynth2 from "@/ilb/hooks/useSynth2";
 import useMeasurementBpm from "@/ilb/hooks/useMeasurementBpm";
 import Chart from "chart.js/auto";
 import AccelerationChart from "@/ilb/components/chart/AccelerationChart";
@@ -12,15 +13,20 @@ import Effect from "@/ilb/components/chart/Effect";
 
 Chart.register();
 
-const partNames = ["キック", "ハイハット1", "ハイハット2", "ビープ", "バス"];
-
 export default function Home() {
   const { bpms, measureBpm, setBpms } = useMeasurementBpm(true);
   const { accs, requestPermission, isGranted } = useAcceleration();
   const accsChartRef = useRef<Chart<"line">>(null);
   const startOverTime = useRef<number>(0);
-  const [parts, setParts] = useState<Array<Tone.Part | Tone.Loop>>([]);
+  const [parts, setParts] = useState<Array<Tone.Part | Tone.Loop | Tone.Sequence>>([]);
+  const [partNames, setPartNames] = useState<Array<string>>([]);
   const { createKickPart, createClosedHihatPart, createBleepLoop, createOpenHihatPart, createBassPart } = useSynth();
+  const {
+    createBassPart: createBassPart2,
+    createKickPart: createKickPart2,
+    createSnarePart: createSnarePart2,
+    createPianoPart: createPianoPart2,
+  } = useSynth2();
 
   useInterval(() => {
     if (!accsChartRef.current) return;
@@ -46,7 +52,7 @@ export default function Home() {
     }
   }, 20);
 
-  const updateParts = (createNewParts: Array<() => Tone.Loop | Tone.Part>) => {
+  const updateParts = (createNewParts: Array<() => Tone.Loop | Tone.Part | Tone.Sequence>) => {
     parts.map((part) => part.dispose());
     Tone.Transport.stop();
     const newParts = createNewParts.map((callback) => callback().start());
@@ -57,29 +63,60 @@ export default function Home() {
   useEffect(() => {
     if (!bpms.length) {
       updateParts([]);
+      setPartNames([]);
       return;
     }
 
-    if (bpms.length === 8) {
-      updateParts([createKickPart]);
+    const aveBpm = bpms.reduce((prev, cur) => prev + cur) / bpms.length;
+
+    if (aveBpm < 140) {
+      if (bpms.length === 8) {
+        updateParts([createKickPart2]);
+        setPartNames(["キック"]);
+      }
+
+      if (bpms.length === 16) {
+        updateParts([createKickPart2, createSnarePart2]);
+        setPartNames((prev) => [...prev, "スネア"]);
+      }
+
+      if (bpms.length === 24) {
+        updateParts([createKickPart2, createSnarePart2, createBassPart2]);
+        setPartNames((prev) => [...prev, "バス"]);
+      }
+
+      if (bpms.length === 32) {
+        updateParts([createKickPart2, createSnarePart2, createPianoPart2, createBassPart2]);
+        setPartNames((prev) => [...prev, "メロディー(ピアノ)"]);
+      }
+    } else {
+      if (bpms.length === 8) {
+        updateParts([createKickPart]);
+        setPartNames((prev) => [...prev, "キック"]);
+      }
+
+      if (bpms.length === 16) {
+        updateParts([createKickPart, createClosedHihatPart]);
+        setPartNames((prev) => [...prev, "ハイハット1"]);
+      }
+
+      if (bpms.length === 24) {
+        updateParts([createKickPart, createClosedHihatPart, createOpenHihatPart]);
+        setPartNames((prev) => [...prev, "ハイハット2"]);
+      }
+
+      if (bpms.length === 32) {
+        updateParts([createKickPart, createClosedHihatPart, createOpenHihatPart, createBleepLoop]);
+        setPartNames((prev) => [...prev, "ビープ"]);
+      }
+
+      if (bpms.length === 40) {
+        updateParts([createKickPart, createClosedHihatPart, createOpenHihatPart, createBassPart, createBleepLoop]);
+        setPartNames((prev) => [...prev, "バス"]);
+      }
     }
 
-    if (bpms.length === 16) {
-      updateParts([createKickPart, createClosedHihatPart]);
-    }
-
-    if (bpms.length === 24) {
-      updateParts([createKickPart, createClosedHihatPart, createOpenHihatPart]);
-    }
-
-    if (bpms.length === 32) {
-      updateParts([createKickPart, createClosedHihatPart, createOpenHihatPart, createBleepLoop]);
-    }
-
-    if (bpms.length === 40) {
-      updateParts([createKickPart, createClosedHihatPart, createOpenHihatPart, createBassPart, createBleepLoop]);
-    }
-    Tone.Transport.bpm.value = bpms.reduce((prev, cur) => prev + cur) / bpms.length;
+    Tone.Transport.bpm.value = aveBpm;
   }, [bpms]);
 
   return (
@@ -128,9 +165,9 @@ export default function Home() {
                 ? parts.map((_, i) => (
                     <div className="flex animate-wobble-ver-right items-center space-x-4">
                       <div className="rounded-full  bg-blue-200 px-10">
-                        <h1>
+                        <h2>
                           {i + 1}. {partNames[i]}
-                        </h1>
+                        </h2>
                       </div>
                     </div>
                   ))
@@ -139,6 +176,7 @@ export default function Home() {
           </div>
         </Effect>
       </main>
+      <button onClick={() => {}}>test</button>
     </>
   );
 }

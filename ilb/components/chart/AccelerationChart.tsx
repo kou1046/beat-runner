@@ -13,7 +13,7 @@ type PropsType = {
   accs: Acceleration;
 };
 
-const AccelerationChart = ({ accs, chartRef, threshold = 0.5 }: PropsType) => {
+const AccelerationChart = ({ accs, chartRef, threshold = 1 }: PropsType) => {
   const data = {
     datasets: [
       {
